@@ -18,5 +18,5 @@ def read_root():
     return {
         "developer": "Daniel Lima de Sousa",
         "app_name": "Weather App API",
-        "about_pm_accelerator": "PM Accelerator is a US based company with a global reach premiering in AI learning and as a development hub, featuring award-winning AI products and mentors from top-tier companies such as Google, Meta, Apple, and Nvidia."
+        "about_pm_accelerator": "The Product Manager Accelerator Program is designed to support PM professionals through every stage of their careers. From students looking for entry-level jobs to Directors looking to take on a leadership role, our program has helped over hundreds of students fulfill their career aspirations."
     }
