@@ -1,46 +1,61 @@
+import re
+
 import httpx
 from fastapi import HTTPException
 
-def parse_coordinates(location_str: str):
-    """
-    Tries to parse latitude and longitude from a string in the format 'latitude, longitude' (ex: '-23.5505, -46.6333').
-    """
-    try:
-        parts = [p.strip() for p in location_str.split(',')]
-        if len(parts) == 2:
-            lat = float(parts[0])
-            lon = float(parts[1])
-            return lat, lon
-    except ValueError:
-        pass # If not parsable, it means its a city name
-    return None, None
+async def validate_location(location: str):
+    clean_location = location.replace("GPS:", "").strip()
+    
+    coord_pattern = r"^([-+]?\d{1,2}(?:\.\d+)?)\s*,\s*([-+]?\d{1,3}(?:\.\d+)?)$"
+    match = re.match(coord_pattern, clean_location)
+    
+    # 1. For GPS coordinates, we attempt to parse them directly
+    if match:
+        lat = float(match.group(1))
+        lon = float(match.group(2))
+        
+        url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json&zoom=10&accept-language=en"
+        headers = {
+            "User-Agent": "WeatherApp_Assessment/1.0 (https://www.cruzeirotech.com; daniellimas2000@gmail.com)"
+        }
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    address = data.get("address", {})
+                    
+                    city = address.get("city") or address.get("town") or address.get("village") or address.get("county")
+                    country = address.get("country", "")
+                    
+                    if city:
+                        official_name = f"{city}, {country}" if country else city
+                        return official_name, lat, lon
+            except Exception:
+                pass
+        
+        return f"{lat}, {lon}", lat, lon
 
-async def validate_location(location_name: str):
-    lat, lon = parse_coordinates(location_name)
-    if lat is not None and lon is not None:
-        return f"GPS: {lat}, {lon}", lat, lon
-
-    # If not a coord string, treat it as a city name and call the geocoding API
-    url = f"https://geocoding-api.open-meteo.com/v1/search?name={location_name}&count=1&language=en&format=json"
+    # 2. For city names, we use the geocoding API to get the official name and coordinates
+    url = f"https://geocoding-api.open-meteo.com/v1/search?name={clean_location}&count=1&language=en&format=json"
     
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
         
     if response.status_code != 200:
-        raise HTTPException(status_code=503, detail="Error occurred while communicating with the external geocoding service.")
+        raise HTTPException(status_code=400, detail="Error communicating with geocoding API.")
         
     data = response.json()
-    
     if not data.get("results"):
-        raise HTTPException(status_code=400, detail=f"The location '{location_name}' was not found.")
+        raise HTTPException(status_code=404, detail=f"The location '{clean_location}' was not found.")
         
     result = data["results"][0]
-    official_name = result.get("name")
+    name = result.get("name")
     country = result.get("country", "")
+    official_name = f"{name}, {country}" if country else name
     
-    full_name = f"{official_name}, {country}" if country else official_name
-    
-    return full_name, result.get("latitude"), result.get("longitude")
+    return official_name, result["latitude"], result["longitude"]
 
 async def fetch_temperature_data(lat: float, lon: float, start_date: str, end_date: str):
     url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&start_date={start_date}&end_date={end_date}&daily=temperature_2m_max,temperature_2m_min,weather_code,uv_index_max&current=relative_humidity_2m&timezone=auto"
