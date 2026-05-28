@@ -1,5 +1,4 @@
 import re
-
 import httpx
 from fastapi import HTTPException
 
@@ -14,14 +13,21 @@ async def validate_location(location: str):
         lat = float(match.group(1))
         lon = float(match.group(2))
         
-        url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json&zoom=10&accept-language=en"
+        url = "https://nominatim.openstreetmap.org/reverse"
+        params = {
+            "lat": lat,
+            "lon": lon,
+            "format": "json",
+            "zoom": 10,
+            "accept-language": "en"
+        }
         headers = {
             "User-Agent": "WeatherApp_Assessment/1.0 (https://www.cruzeirotech.com; daniellimas2000@gmail.com)"
         }
         
         async with httpx.AsyncClient() as client:
             try:
-                resp = await client.get(url, headers=headers)
+                resp = await client.get(url, params=params, headers=headers)
                 if resp.status_code == 200:
                     data = resp.json()
                     address = data.get("address", {})
@@ -30,21 +36,29 @@ async def validate_location(location: str):
                     country = address.get("country", "")
                     
                     if city:
-                        official_name = f"{city}, {country}" if country else city
-                        return official_name, lat, lon
+                        return f"{city}, {country}" if country else city, lat, lon
             except Exception:
-                pass
+                pass 
         
         return f"{lat}, {lon}", lat, lon
 
     # 2. For city names, we use the geocoding API to get the official name and coordinates
-    url = f"https://geocoding-api.open-meteo.com/v1/search?name={clean_location}&count=1&language=en&format=json"
+    search_query = clean_location.split(',')[0].strip()
+    
+    url = "https://geocoding-api.open-meteo.com/v1/search"
+    params = {
+        "name": search_query,
+        "count": 1,
+        "language": "en",
+        "format": "json"
+    }
     
     async with httpx.AsyncClient() as client:
-        response = await client.get(url)
+        response = await client.get(url, params=params)
         
     if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Error communicating with geocoding API.")
+        print(f"ERRO OPEN-METEO (GEO): Status {response.status_code} - Body: {response.text}")
+        raise HTTPException(status_code=400, detail=f"API Error ({response.status_code}). Check server logs.")
         
     data = response.json()
     if not data.get("results"):
@@ -53,6 +67,7 @@ async def validate_location(location: str):
     result = data["results"][0]
     name = result.get("name")
     country = result.get("country", "")
+    
     official_name = f"{name}, {country}" if country else name
     
     return official_name, result["latitude"], result["longitude"]
@@ -76,7 +91,7 @@ async def fetch_temperature_data(lat: float, lon: float, start_date: str, end_da
     temps_max = daily_data.get("temperature_2m_max", [])
     temps_min = daily_data.get("temperature_2m_min", [])
     codes = daily_data.get("weather_code", [])
-    uv_indices = daily_data.get("uv_index_max", []) # Array de UV diário
+    uv_indices = daily_data.get("uv_index_max", [])
     
     if not times or not temps_max or not temps_min or not codes:
         return 0.0, 0.0, 0, 0.0, 0.0, []
