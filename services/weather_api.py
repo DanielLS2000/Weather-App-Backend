@@ -73,13 +73,29 @@ async def validate_location(location: str):
     return official_name, result["latitude"], result["longitude"]
 
 async def fetch_temperature_data(lat: float, lon: float, start_date: str, end_date: str):
-    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&start_date={start_date}&end_date={end_date}&daily=temperature_2m_max,temperature_2m_min,weather_code,uv_index_max&current=relative_humidity_2m&timezone=auto"
+    url = "https://api.open-meteo.com/v1/forecast"
+    
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "start_date": start_date,
+        "end_date": end_date,
+        "daily": "temperature_2m_max,temperature_2m_min,weather_code,uv_index_max",
+        "current": "relative_humidity_2m",
+        "timezone": "auto"
+    }
     
     async with httpx.AsyncClient() as client:
-        response = await client.get(url)
+        response = await client.get(url, params=params)
         
     if response.status_code != 200:
-        raise HTTPException(status_code=400, detail="Error fetching weather data.")
+        error_msg = response.text
+        print(f"ERRO OPEN-METEO (CLIMA): Status {response.status_code} - Body: {error_msg}")
+        
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Weather API Error: {error_msg}"
+        )
         
     data = response.json()
     
