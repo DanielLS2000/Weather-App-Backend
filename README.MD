@@ -49,16 +49,20 @@ Make sure you have **Python (3.9 or higher)** and **Git** installed.
    ```bash
    git clone https://github.com/DanielLS2000/Weather-App-Backend
    cd Weather-App-Backend
+
 2. **Create a Virtual Environment:**
    ```bash
    python -m venv venv
+
 3. **Activate the Virtual Environment (Windows):**
    ```bash
    venv\Scripts\activate
 (Note: If you are using Git Bash on Windows, use source venv/Scripts/activate)
+
 4. **Install the dependencies:**
    ```bash
    pip install -r requirements.txt
+
 5. **Run the API server:**
    ```bash
    uvicorn main:app --reload
