@@ -6,7 +6,7 @@ from routers import weather, export
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Weather API - PM Accelerator",
+    title="Weather API",
     description="Backend API for Weather Application",
     version="1.0.0"
 )
@@ -18,7 +18,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
