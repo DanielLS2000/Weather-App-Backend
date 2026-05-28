@@ -74,3 +74,5 @@ FastAPI automatically generates interactive API documentation.
 Once the server is running, you can explore all endpoints, test requests, and view the data schemas by navigating to:
 
 Interactive Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+You can also access the docs via the render deployment: [https://weather-app-backend-8n5a.onrender.com/docs](https://weather-app-backend-8n5a.onrender.com/docs)
