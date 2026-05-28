@@ -11,5 +11,8 @@ class WeatherRecord(Base):
     end_date = Column(String, nullable=False)
     temperature_max = Column(Float, nullable=True)
     temperature_min = Column(Float, nullable=True)
+    weather_code = Column(Integer, nullable=True)
+    uv_index = Column(Float, nullable=True)
+    humidity = Column(Float, nullable=True)
     daily_forecast = Column(JSON, nullable=True) 
     created_at = Column(DateTime, default=datetime.utcnow)

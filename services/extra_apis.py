@@ -30,8 +30,10 @@ async def get_youtube_videos(location_name: str, max_results: int = 3):
     return videos
 
 def get_google_maps_data(lat: float, lon: float, location_name: str):
+    embed_url = f"https://maps.google.com/maps?q={lat},{lon}&hl=en&z=14&output=embed"
+    
     return {
-        "google_maps_url": f"https://www.google.com/maps/search/?api=1&query={lat},{lon}",
+        "google_maps_url": embed_url
     }
 
 async def get_wikipedia_summary(location_name: str):

@@ -43,6 +43,9 @@ class WeatherResponse(WeatherBase):
     id: int
     temperature_max: Optional[float] = None
     temperature_min: Optional[float] = None
+    weather_code: Optional[int] = None
+    uv_index: Optional[float] = None
+    humidity: Optional[float] = None
     daily_forecast: Optional[list[dict]] = None
 
     class Config:
