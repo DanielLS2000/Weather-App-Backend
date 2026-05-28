@@ -75,4 +75,4 @@ Once the server is running, you can explore all endpoints, test requests, and vi
 
 Interactive Docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-You can also access the docs via the render deployment: [https://weather-app-backend-8n5a.onrender.com/docs](https://weather-app-backend-8n5a.onrender.com/docs)
+Live API Docs (Render Demo): [https://weather-app-backend-8n5a.onrender.com/docs](https://weather-app-backend-8n5a.onrender.com/docs)
